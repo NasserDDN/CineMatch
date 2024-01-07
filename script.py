@@ -47,16 +47,20 @@ def get_movie_poster(tmdbId):
     api_url = f"https://api.themoviedb.org/3/movie/{tmdbId}?api_key={API_KEY}&language=en-US"
     response = requests.get(api_url)
     data = response.json()
-    print(data['overview'])
+    
+    if 'overview' in data and data['overview']:
+        overview = data['overview']
+    else:
+        overview = ""
 
     # Basic URL for TMDb images
     base_url = "https://image.tmdb.org/t/p/original"
     
     if 'poster_path' in data and data['poster_path']:
         poster_url = base_url + data['poster_path']
-        return poster_url, data['overview']
+        return poster_url, overview
     else:
-        return None, data['overview']  # or the URL of a placeholder image if the poster is not available
+        return None, overview  # or the URL of a placeholder image if the poster is not available
 
 
 def search():
@@ -333,7 +337,7 @@ def recommend():
         display_recommendations(recommended_movies)
 
 # Window creation
-root = tk.Tk()
+root = tk.Tk(className=" CineMatch ")
 
 # Set the initial theme
 root.tk.call("source", "azure.tcl")

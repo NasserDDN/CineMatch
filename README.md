@@ -1,44 +1,46 @@
-# CineMatch
+# CineMatch: Personalized Movie Recommendation System
 
-## Description
-CineMatch is a Python-based application that recommends movies to users based on their preferences. It utilizes a dataset of movies, including genome scores, movie titles, and genres, to generate personalized recommendations. The system features a user-friendly graphical interface built with Tkinter and the Azure ttk theme.
+## Overview
+CineMatch is a personalized movie recommendation system that leverages user preferences to suggest movies. The system uses the MovieLens dataset, renowned for its reliability and extensive genome tags and user ratings. By processing user likes and dislikes, CineMatch offers tailored movie suggestions, enhancing the user experience.
 
 ## Features
-- **Search Functionality:** Allows users to search for movies from the dataset by titles.
-- **Like and Dislike Options:** Users can like or dislike movies, influencing future recommendations.
-- **Recommendation Engine:** Uses a K-Nearest Neighbors algorithm to recommend movies based on user preferences.
-- **Dynamic UI Updates:** The interface updates in real-time to display search results and recommendations.
+- **Personalized Recommendations**: Utilizes user preferences for tailored movie suggestions.
+- **Rating-Based Sorting**: Displays movies sorted by average ratings for quality-focused recommendations.
+- **Detailed Movie Information**: Shows movie posters, genres, summaries, and average ratings.
+- **Interactive UI**: Users can like or dislike movies, influencing future recommendations.
 
 ## Installation
-1. Ensure Python is installed on your system.
-2. Install required libraries: `pandas`, `numpy`, `sklearn`, `PIL`, and `requests`.
-3. Clone the repository or download the script.
-
-    ```bash
-    git clone https://github.com/NasserDDN/CineMatch.git
-    ```
-
-4. Download the movie dataset [here](https://grouplens.org/datasets/movielens/latest/) and place it in the specified directory.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/NasserDDN/CineMatch.git
+   ```
+2. Install required libraries:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ## Usage
-1. Run the script:
+Before running the main application, compute the mean ratings for each movie:
+1. Navigate to the `utils` directory.
+2. Run the `compute_mean_ratings.py` script to generate `mean_ratings.csv`.
+3. Launch the main application:
+   ```bash
+   python script.py
+   ```
 
-    ```bash
-    python script.py
-    ```
-
-2. The application window will open. Use the search bar to find movies or interact with the like/dislike buttons to set preferences.
-3. Adjust the number of movies the application will recommend to you
-4. Click on "Recommend movies" to get personalized movie suggestions.
+## How It Works
+CineMatch operates on the MovieLens dataset. It first filters movies lacking genome tags, ensuring a quality dataset. User interactions (likes/dislikes) are tracked, and their movie genome data are used to find similar movies using a KNN algorithm. Movies are then sorted by average ratings and presented with detailed information.
 
 ## Dependencies
-- **Pandas:** For data manipulation and analysis.
-- **NumPy:** For numerical operations.
-- **Scikit-learn:** For implementing the K-Nearest Neighbors algorithm.
-- **Pillow (PIL):** For image processing.
-- **Requests:** For fetching movie posters from an external API.
-- **Tkinter:** For GUI creation.
-- **Azure ttk theme:** For styling the GUI. Visit the [Azure ttk theme GitHub repository](https://github.com/rdbende/Azure-ttk-theme/tree/main) for more information.
+- Python 3
+- Pandas
+- NumPy
+- Scikit-Learn
+- Tkinter
+- PIL
+- Requests
 
-## Note
-This application is a demonstration project. The movie recommendation logic is basic and serves as an example of integrating machine learning algorithms with a GUI in Python.
+## Credits
+- MovieLens Dataset: [GroupLens](https://files.grouplens.org/datasets/movielens/ml-latest-README.html)
+- Tkinter Theme: [Azure-ttk-theme](https://github.com/rdbende/Azure-ttk-theme/tree/main)
+

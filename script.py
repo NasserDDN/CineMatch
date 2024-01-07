@@ -24,21 +24,7 @@ df_films = pd.read_csv(r"ml-latest/movies.csv", delimiter=',',  quotechar='"', h
 unique_movie_ids = df_gen_scores_with_cols['movieId'].unique()
 df_films_filtered = df_films[df_films['movieId'].isin(unique_movie_ids)]
 
-
-# Uncomment if first time and comment then because it is doing huge computations
-
-# # Read the ratings data
-# df_ratings = pd.read_csv(r"ml-latest/ratings.csv", delimiter=',', header=0)
-
-# # Merge movies data with ratings
-# df_movies_with_ratings = pd.merge(df_films_filtered, df_ratings, on='movieId')
-
-# # Calculate the average rating for each movie
-# average_ratings = df_movies_with_ratings.groupby('movieId')['rating'].mean()
-# average_ratings.to_csv('mean_ratings.csv', index=True)
-
 average_ratings = pd.read_csv(r"ml-latest/mean_ratings.csv", delimiter=',', header=0)
-
 
 # Films liked by user
 liked_movie_ids = []

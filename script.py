@@ -24,6 +24,22 @@ df_films = pd.read_csv(r"ml-latest/movies.csv", delimiter=',',  quotechar='"', h
 unique_movie_ids = df_gen_scores_with_cols['movieId'].unique()
 df_films_filtered = df_films[df_films['movieId'].isin(unique_movie_ids)]
 
+
+# Uncomment if first time and comment then because it is doing huge computations
+
+# # Read the ratings data
+# df_ratings = pd.read_csv(r"ml-latest/ratings.csv", delimiter=',', header=0)
+
+# # Merge movies data with ratings
+# df_movies_with_ratings = pd.merge(df_films_filtered, df_ratings, on='movieId')
+
+# # Calculate the average rating for each movie
+# average_ratings = df_movies_with_ratings.groupby('movieId')['rating'].mean()
+# average_ratings.to_csv('mean_ratings.csv', index=True)
+
+average_ratings = pd.read_csv(r"ml-latest/mean_ratings.csv", delimiter=',', header=0)
+
+
 # Films liked by user
 liked_movie_ids = []
 disliked_movie_ids = []
@@ -45,15 +61,16 @@ def get_movie_poster(tmdbId):
     api_url = f"https://api.themoviedb.org/3/movie/{tmdbId}?api_key={API_KEY}&language=en-US"
     response = requests.get(api_url)
     data = response.json()
+    print(data['overview'])
 
     # Basic URL for TMDb images
     base_url = "https://image.tmdb.org/t/p/original"
     
     if 'poster_path' in data and data['poster_path']:
         poster_url = base_url + data['poster_path']
-        return poster_url
+        return poster_url, data['overview']
     else:
-        return None  # or the URL of a placeholder image if the poster is not available
+        return None, data['overview']  # or the URL of a placeholder image if the poster is not available
 
 
 def search():
@@ -127,7 +144,7 @@ def update_ui(films):
         film_frame.pack(fill='x', expand=True, padx=5, pady=5)
 
         tmdbId = df_links[df_links['movieId'] == film['movieId']]['tmdbId'].iloc[0]
-        poster_url = get_movie_poster(tmdbId)
+        poster_url, overview = get_movie_poster(tmdbId)
         if poster_url:
             poster_image = load_image_from_url(poster_url)
 
@@ -137,15 +154,30 @@ def update_ui(films):
             image_label = ttk.Label(film_frame, image=poster_image)
             image_label.pack(side="left", padx=10)
 
-        ttk.Label(film_frame, text=f"{film['title']} - {film['genres']}").pack(side="left", padx=10)
+        avg_rating = average_ratings[average_ratings['movieId']==movieId]['rating'].iloc[0]  # Get the average rating of the movie
 
+        # Rating rounded to one decimal place
+        rounded_rating = round(avg_rating, 1)
+        rating_text = f"{rounded_rating}\u2B50"  # Rating followed by a star emoji
+        
+        # Creating a sub-frame for the movie's title and summary
+        text_frame = ttk.Frame(film_frame)
+        text_frame.pack(side="left", fill="both", pady=50, expand=True)
+
+        # Displaying the movie title and rating
+        film_title_label = ttk.Label(text_frame, text=f"{film['title']} - {film['genres']} - {rating_text}")
+        film_title_label.pack(side="top", padx=15, anchor="w")  # 'w' for left alignment
+
+        # Displaying the movie summary
+        summary_label = tk.Message(text_frame, text=overview, width=500)  # Adjust width as needed
+        summary_label.pack(side="left", padx=10, anchor="w")
 
         # Add Like and Dislike buttons
-        like_button = ttk.Button(film_frame, text="Like", command=lambda mid=movieId: on_like(mid))
-        like_button.pack(side="left", padx=5)
-
         dislike_button = ttk.Button(film_frame, text="Dislike", command=lambda mid=movieId: on_dislike(mid))
-        dislike_button.pack(side="left", padx=5)
+        dislike_button.pack(side="right", padx=5)
+
+        like_button = ttk.Button(film_frame, text="Like", command=lambda mid=movieId: on_like(mid))
+        like_button.pack(side="right", padx=5)
 
         film_frame.pack(fill='x', expand=True, padx=5, pady=5)
 
@@ -220,20 +252,35 @@ def display_recommendations(recommended_movies):
     recommendations_title.pack(side="top", pady=10)
 
     for movie in recommended_movies:
+        print(movie)
         film_frame = ttk.Frame(inner_frame)
         film_frame.pack(fill='x', expand=True, padx=5, pady=5)
 
         # Show film poster (if available)
-        poster_url = get_movie_poster(movie['tmdbId'])
+        poster_url, overview = get_movie_poster(movie['tmdbId'])
         if poster_url:
             poster_image = load_image_from_url(poster_url)
             image_label = ttk.Label(film_frame, image=poster_image)
             image_label.image = poster_image  # Keep a reference
             image_label.pack(side="left", padx=10)
 
-        # Show film title and reason for recommendation
-        film_title_label = ttk.Label(film_frame, text=f"{movie['title']} because you loved {movie['reason']}")
-        film_title_label.pack(side="left", padx=10)
+        # Rating rounded to one decimal place
+        rounded_rating = round(movie['rating'], 1)
+        rating_text = f"{rounded_rating}\u2B50"  # Rating followed by a star emoji
+        rating_text = f"{movie['rating']:.1f}⭐"  # Rounded rating with star emoji
+
+        # Creating a sub-frame for the movie's title and summary
+        text_frame = ttk.Frame(film_frame)
+        text_frame.pack(side="left", fill="both", pady=50, expand=True)
+
+        # Displaying the movie title and rating
+        film_title_label = ttk.Label(text_frame, text=f"{movie['title']} - {rating_text} - because you loved {movie['reason']}")
+        film_title_label.pack(side="top", padx=15, anchor="w")  # 'w' for left alignment
+
+        # Displaying the movie summary
+        summary_label = tk.Message(text_frame, text=overview, width=500)  # Adjust width as needed
+        summary_label.pack(side="left", padx=10, anchor="w")
+
 
 def recommend():
     global df_gen_scores_without_cols, df_gen_scores_with_cols, liked_movie_ids, disliked_movie_ids, liked_movies_genome
@@ -283,12 +330,19 @@ def recommend():
             print(f"Recommended movie {x} : {pred_movie.iloc[0,1]}, because you liked {movie_title}")
 
             id_tmdb = df_links[df_links['movieId'] == id_db]['tmdbId'].iloc[0]
-            recommended_movies.append({'title': pred_movie.iloc[0,1], 'tmdbId': id_tmdb, 'reason' : movie_title })
 
             # Remove genome from dataframe for not recommending the same film in the futur
             delete_genome_in_DF([id_db])
             del X[ids_pred_movies[0,0]]
-        
+
+            avg_rating = average_ratings[average_ratings['movieId']==id_db]['rating'].iloc[0]  # Get the average rating of the movie
+
+            recommended_movies.append({'title': pred_movie.iloc[0,1], 'tmdbId': id_tmdb, 'rating': avg_rating, 'reason': movie_title})
+            print(f"'title': {pred_movie.iloc[0,1]}, 'tmdbId': {id_tmdb}, 'rating': {avg_rating}, 'reason': {movie_title}")
+    
+        # Sort recommended movies by their rating
+        recommended_movies.sort(key=lambda x: x.get('rating', 0), reverse=True)
+
         # Show recommendations
         display_recommendations(recommended_movies)
 

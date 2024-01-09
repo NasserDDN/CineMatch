@@ -433,5 +433,8 @@ width_listbox = 50
 appreciated_movies_list.configure(width=width_listbox)
 unappreciated_movies_list.configure(width=width_listbox)
 
+# Initialize interface with some movies
+search()
+
 root.bind("<Configure>", on_window_resize)
 root.mainloop()
